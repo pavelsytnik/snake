@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <windows.h>
 
 /* Snake head according to its direction */
 #define UP_DIR '^'
@@ -17,11 +18,16 @@
 
 #define NEW_LINE() putchar('\n')
 
+HANDLE hConsole;
+void setCursor(int x, int y);
+
 void draw();
 void printChar(char ch);
 void repeatChar(char ch, int count);
+void putCursorOnMap(int x, int y);
 
 int main(void) {
+    hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     draw();
     return 0;
 }
@@ -53,4 +59,16 @@ void repeatChar(char ch, int count) {
     for (i = 0; i < count; ++i) {
         printChar(ch);
     }
+}
+
+void setCursor(int x, int y) {
+    COORD coord;
+    coord.X = x;
+    coord.Y = y;
+
+    SetConsoleCursorPosition(hConsole, coord);
+}
+
+void putCursorOnMap(int x, int y) {
+    setCursor((x + 1) * 2, y + 1);
 }
