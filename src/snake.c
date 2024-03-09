@@ -38,6 +38,7 @@ int tail_index;
 int move_direction;
 
 void setCursor(int x, int y);
+void hideCursor();
 
 void drawSnake();
 void drawMap();
@@ -106,4 +107,11 @@ void setCursor(int x, int y) {
 
 void putCursorOnMap(pos_t pos) {
     setCursor((pos.x + 1) * 2, pos.y + 1);
+}
+
+void hideCursor() {
+    CONSOLE_CURSOR_INFO cursorInfo;
+    GetConsoleCursorInfo(hConsole, &cursorInfo);
+    cursorInfo.bVisible = FALSE;
+    SetConsoleCursorInfo(hConsole, &cursorInfo);
 }
