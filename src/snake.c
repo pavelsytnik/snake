@@ -41,6 +41,7 @@ void setCursor(int x, int y);
 void hideCursor();
 
 void drawSnake();
+void drawHead();
 void drawMap();
 
 void printChar(char ch);
@@ -50,7 +51,10 @@ void putCursorOnMap(pos_t pos);
 int main(void) {
     hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
+    move_direction = RIGHT;
+
     drawMap();
+    drawSnake();
 
     /* Set cursor at the end of the output */
     setCursor(0, MAP_HEIGHT + 2);
@@ -77,11 +81,29 @@ void drawMap() {
 
 void drawSnake() {
     int i;
-    putCursorOnMap(snake[HEAD_INDEX]);
-    printChar('&');
+
+    drawHead();
     for (i = START_BODY_INDEX; i < snake_length; ++i) {
         putCursorOnMap(snake[i]);
         printChar(SNAKE_BODY);
+    }
+}
+
+void drawHead() {
+    putCursorOnMap(snake[HEAD_INDEX]);
+    switch (move_direction) {
+        case UP:
+            printChar(SNAKE_HEAD_UP);
+            break;
+        case RIGHT:
+            printChar(SNAKE_HEAD_RIGHT);
+            break;
+        case DOWN:
+            printChar(SNAKE_HEAD_DOWN);
+            break;
+        case LEFT:
+            printChar(SNAKE_HEAD_LEFT);
+            break;
     }
 }
 
