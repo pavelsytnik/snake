@@ -1,11 +1,15 @@
 #include <stdio.h>
 #include <windows.h>
 
-/* Snake head according to its direction */
-#define UP_DIR '^'
-#define DOWN_DIR 'v'
-#define LEFT_DIR '<'
-#define RIGHT_DIR '>'
+#define SNAKE_HEAD_UP '^'
+#define SNAKE_HEAD_DOWN 'v'
+#define SNAKE_HEAD_LEFT '<'
+#define SNAKE_HEAD_RIGHT '>'
+
+#define UP 0
+#define RIGHT 1
+#define DOWN 2
+#define LEFT 3
 
 #define SNAKE_BODY '@'
 #define WALL '#'
@@ -16,9 +20,23 @@
 #define MAP_HEIGHT 40
 #define SNAKE_ARRAY_SIZE (MAP_WIDTH * MAP_HEIGHT)
 
+#define HEAD_INDEX 0
+#define START_BODY_INDEX 1
+
 #define NEW_LINE() putchar('\n')
 
 HANDLE hConsole;
+
+typedef struct pos {
+    int x;
+    int y;
+} pos_t;
+
+pos_t snake[SNAKE_ARRAY_SIZE];
+int snake_length;
+int tail_index;
+int move_direction;
+
 void setCursor(int x, int y);
 
 void draw();
