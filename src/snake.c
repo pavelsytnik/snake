@@ -27,6 +27,11 @@
 
 HANDLE hConsole;
 
+SHORT downPressed;
+SHORT upPressed;
+SHORT leftPressed;
+SHORT rightPressed;
+
 typedef struct pos {
     int x;
     int y;
@@ -40,6 +45,8 @@ int move_direction;
 void setCursor(int x, int y);
 void hideCursor();
 
+void init();
+
 void drawSnake();
 void drawHead();
 void drawMap();
@@ -49,9 +56,7 @@ void repeatChar(char ch, int count);
 void putCursorOnMap(pos_t pos);
 
 int main(void) {
-    hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-
-    move_direction = RIGHT;
+    init();
 
     drawMap();
     drawSnake();
@@ -60,6 +65,16 @@ int main(void) {
     setCursor(0, MAP_HEIGHT + 2);
 
     return 0;
+}
+
+void init() {
+    hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    hideCursor();
+
+    move_direction = RIGHT;
+    snake_length = 1;
+    snake[HEAD_INDEX].x = MAP_WIDTH / 2;
+    snake[HEAD_INDEX].y = MAP_HEIGHT / 2;
 }
 
 void drawMap() {
