@@ -41,6 +41,8 @@ typedef struct pos {
     int y;
 } pos_t;
 
+int gameOver;
+
 pos_t snake[SNAKE_ARRAY_SIZE];
 int snake_length;
 int tail_index;
@@ -73,6 +75,8 @@ void move();
 void moveHead();
 void eraseTail();
 
+int wasCollision();
+
 int areEqual(pos_t a, pos_t b);
 
 int main(void) {
@@ -94,6 +98,8 @@ void init() {
     hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     hideCursor();
 
+    gameOver = 0;
+
     move_direction = RIGHT;
     snake_length = 3;
 
@@ -110,7 +116,6 @@ void init() {
 }
 
 void gameLoop() {
-    int gameOver = 0;
     while (!gameOver) {
         Sleep(100);
         input();
@@ -118,9 +123,22 @@ void gameLoop() {
     }
 }
 
+int wasCollision() {
+    int i;
+    for (i = 1; i < snake_length; ++i) {
+        if (areEqual(snake[HEAD_INDEX], snake[i])) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 void update() {
     move();
     if (grow) grow = 0;
+    if (wasCollision()) {
+        gameOver = 1;
+    }
     if (areEqual(food, snake[HEAD_INDEX])) {
         eat();
     }
