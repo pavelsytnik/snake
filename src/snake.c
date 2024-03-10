@@ -25,6 +25,8 @@
 #define HEAD_INDEX 0
 #define TAIL_INDEX (snake_length - 1)
 
+#define BODY_EXISTS (snake_length > 1)
+
 #define NEW_LINE() putchar('\n')
 
 HANDLE hConsole;
@@ -70,6 +72,8 @@ void eat();
 void move();
 void moveHead();
 void eraseTail();
+
+int areEqual(pos_t a, pos_t b);
 
 int main(void) {
 
@@ -117,7 +121,7 @@ void gameLoop() {
 void update() {
     move();
     if (grow) grow = 0;
-    if (food.x == snake[HEAD_INDEX].x && food.y == snake[HEAD_INDEX].y) {
+    if (areEqual(food, snake[HEAD_INDEX])) {
         eat();
     }
 }
@@ -125,17 +129,18 @@ void update() {
 void move() {
     int i;
     eraseTail();
-    for (i = snake_length - 1; i > HEAD_INDEX; i--) {
+    for (i = TAIL_INDEX; i > HEAD_INDEX; i--) {
         snake[i] = snake[i - 1];
     }
     moveHead();
 }
 
 void moveHead() {
-    if (snake_length > 1) {
+    if (BODY_EXISTS) {
         putCursorOnMap(snake[HEAD_INDEX]);
         printChar(SNAKE_BODY);
     }
+
     switch (move_direction) {
         case UP:
             if (snake[HEAD_INDEX].y == 0)
@@ -167,7 +172,7 @@ void moveHead() {
 }
 
 void eraseTail() {
-    if (snake_length == 1 || grow)
+    if (!BODY_EXISTS || grow)
         return;
 
     putCursorOnMap(snake[TAIL_INDEX]);
@@ -206,7 +211,7 @@ void eat() {
 }
 
 void drawMap() {
-    int i, j;
+    int i;
 
     repeatChar(WALL, MAP_WIDTH + 2);
     NEW_LINE();
@@ -259,7 +264,7 @@ void generateFood() {
     do {
         food.x = rand() % MAP_WIDTH;
         food.y = rand() % MAP_HEIGHT;
-    } while (food.x == snake[HEAD_INDEX].x && food.y == snake[HEAD_INDEX].y);
+    } while (areEqual(food, snake[HEAD_INDEX]));
 }
 
 void printChar(char ch) {
@@ -291,4 +296,8 @@ void hideCursor() {
     GetConsoleCursorInfo(hConsole, &cursorInfo);
     cursorInfo.bVisible = FALSE;
     SetConsoleCursorInfo(hConsole, &cursorInfo);
+}
+
+int areEqual(pos_t a, pos_t b) {
+    return a.x == b.x && a.y == b.y;
 }
