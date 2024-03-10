@@ -52,6 +52,7 @@ void hideCursor();
 void init();
 void input();
 void gameLoop();
+void update();
 
 void drawSnake();
 void drawHead();
@@ -63,6 +64,8 @@ void repeatChar(char ch, int count);
 void putCursorOnMap(pos_t pos);
 
 void generateFood();
+
+void move();
 
 int main(void) {
 
@@ -95,9 +98,43 @@ void init() {
 void gameLoop() {
     int gameOver = 0;
     while (!gameOver) {
-        input();
-        drawSnake();
         Sleep(150);
+        input();
+        update();
+    }
+}
+
+void update() {
+    move();
+    drawSnake();
+}
+
+void move() {
+    switch (move_direction) {
+        case UP:
+            if (snake[HEAD_INDEX].y == 0)
+                snake[HEAD_INDEX].y = MAP_HEIGHT - 1;
+            else
+                snake[HEAD_INDEX].y--;
+            break;
+        case DOWN:
+            if (snake[HEAD_INDEX].y == MAP_HEIGHT - 1)
+                snake[HEAD_INDEX].y = 0;
+            else
+                snake[HEAD_INDEX].y++;
+            break;
+        case LEFT:
+            if (snake[HEAD_INDEX].x == 0)
+                snake[HEAD_INDEX].x = MAP_WIDTH - 1;
+            else
+                snake[HEAD_INDEX].x--;
+            break;
+        case RIGHT:
+            if (snake[HEAD_INDEX].x == MAP_WIDTH - 1)
+                snake[HEAD_INDEX].x = 0;
+            else
+                snake[HEAD_INDEX].x++;
+            break;
     }
 }
 
