@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 #include <windows.h>
 
 #define SNAKE_HEAD_UP '^'
@@ -42,6 +44,8 @@ int snake_length;
 int tail_index;
 int move_direction;
 
+pos_t food;
+
 void setCursor(int x, int y);
 void hideCursor();
 
@@ -52,16 +56,20 @@ void gameLoop();
 void drawSnake();
 void drawHead();
 void drawMap();
+void drawFood();
 
 void printChar(char ch);
 void repeatChar(char ch, int count);
 void putCursorOnMap(pos_t pos);
+
+void generateFood();
 
 int main(void) {
 
     init();
     drawMap();
     drawSnake();
+    drawFood();
 
     gameLoop();
 
@@ -79,6 +87,9 @@ void init() {
     snake_length = 1;
     snake[HEAD_INDEX].x = MAP_WIDTH / 2;
     snake[HEAD_INDEX].y = MAP_HEIGHT / 2;
+
+    srand(time(NULL));
+    generateFood();
 }
 
 void gameLoop() {
@@ -157,6 +168,18 @@ void drawHead() {
             printChar(SNAKE_HEAD_LEFT);
             break;
     }
+}
+
+void drawFood() {
+    putCursorOnMap(food);
+    printChar(FOOD);
+}
+
+void generateFood() {
+    do {
+        food.x = rand() % MAP_WIDTH;
+        food.y = rand() % MAP_HEIGHT;
+    } while (food.x == snake[HEAD_INDEX].x && food.y == snake[HEAD_INDEX].y);
 }
 
 void printChar(char ch) {
