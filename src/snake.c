@@ -66,6 +66,8 @@ void putCursorOnMap(pos_t pos);
 void generateFood();
 
 void move();
+void moveHead();
+void updateTail();
 
 int main(void) {
 
@@ -87,9 +89,14 @@ void init() {
     hideCursor();
 
     move_direction = RIGHT;
-    snake_length = 1;
+    snake_length = 3;
     snake[HEAD_INDEX].x = MAP_WIDTH / 2;
     snake[HEAD_INDEX].y = MAP_HEIGHT / 2;
+    snake[1].x = snake[HEAD_INDEX].x - 1;
+    snake[1].y = snake[HEAD_INDEX].y;
+    snake[2].x = snake[HEAD_INDEX].x - 2;
+    snake[2].y = snake[HEAD_INDEX].y;
+    tail_index = 2;
 
     srand(time(NULL));
     generateFood();
@@ -106,10 +113,14 @@ void gameLoop() {
 
 void update() {
     move();
-    drawSnake();
 }
 
 void move() {
+    updateTail();
+    moveHead();
+}
+
+void moveHead() {
     switch (move_direction) {
         case UP:
             if (snake[HEAD_INDEX].y == 0)
@@ -136,6 +147,25 @@ void move() {
                 snake[HEAD_INDEX].x++;
             break;
     }
+
+    putCursorOnMap(snake[HEAD_INDEX]);
+    drawHead();
+}
+
+void updateTail() {
+    if (snake_length == 1)
+        return;
+
+    putCursorOnMap(snake[tail_index]);
+    printChar(AIR);
+    putCursorOnMap(snake[HEAD_INDEX]);
+    printChar(SNAKE_BODY);
+
+    snake[tail_index] = snake[HEAD_INDEX];
+    if (tail_index == snake_length - 1)
+        tail_index = START_BODY_INDEX;
+    else
+        tail_index++;
 }
 
 void input() {
