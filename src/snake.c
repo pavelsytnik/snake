@@ -46,6 +46,8 @@ void setCursor(int x, int y);
 void hideCursor();
 
 void init();
+void input();
+void gameLoop();
 
 void drawSnake();
 void drawHead();
@@ -56,10 +58,12 @@ void repeatChar(char ch, int count);
 void putCursorOnMap(pos_t pos);
 
 int main(void) {
-    init();
 
+    init();
     drawMap();
     drawSnake();
+
+    gameLoop();
 
     /* Set cursor at the end of the output */
     setCursor(0, MAP_HEIGHT + 2);
@@ -75,6 +79,39 @@ void init() {
     snake_length = 1;
     snake[HEAD_INDEX].x = MAP_WIDTH / 2;
     snake[HEAD_INDEX].y = MAP_HEIGHT / 2;
+}
+
+void gameLoop() {
+    int gameOver = 0;
+    while (!gameOver) {
+        input();
+        drawSnake();
+        Sleep(150);
+    }
+}
+
+void input() {
+    downPressed = GetAsyncKeyState(VK_DOWN);
+    upPressed = GetAsyncKeyState(VK_UP);
+    leftPressed = GetAsyncKeyState(VK_LEFT);
+    rightPressed = GetAsyncKeyState(VK_RIGHT);
+
+    switch (move_direction) {
+        case UP:
+        case DOWN:
+            if (leftPressed)
+                move_direction = LEFT;
+            else if (rightPressed)
+                move_direction = RIGHT;
+            break;
+        case LEFT:
+        case RIGHT:
+            if (upPressed)
+                move_direction = UP;
+            else if (downPressed)
+                move_direction = DOWN;
+            break;
+    }
 }
 
 void drawMap() {
