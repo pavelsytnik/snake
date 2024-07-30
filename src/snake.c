@@ -86,6 +86,7 @@ void DrawFood(void);
 void DrawBodyOnHead(void);
 void EraseTail(void);
 void UpdateScore(void);
+void DeathAnimation(void);
 
 void PrintChar(char ch);
 void RepeatChar(char ch, int count);
@@ -177,6 +178,8 @@ void GameLoop(void)
 
 void HandleEndOfGame(void)
 {
+    DeathAnimation();
+
     // Set cursor at the end of the output
     SetCursorPosition(0, CONSOLE_HEIGHT - 1);
 
@@ -327,6 +330,17 @@ void UpdateScore(void)
 {
     SetCursorPosition(sizeof(SCORE_STRING) - 1, CONSOLE_HEIGHT - 2);
     printf("%d", score);
+}
+
+void DeathAnimation(void)
+{
+    Sleep(SECOND / FPS);
+    for (int i = 1; i < snake_length; i++) {
+        PutCursorOnMap(snake[i]);
+        if (!PosEqual(snake[i], snake[HEAD_INDEX]))
+            PrintChar('X');
+        Sleep(SECOND / FPS);
+    }
 }
 
 void DrawBodyOnHead(void)
