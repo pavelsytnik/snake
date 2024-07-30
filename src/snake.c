@@ -6,6 +6,8 @@
 #include <time.h>
 #include <windows.h>
 
+#define WINDOW_TITLE "Snake"
+
 #define SNAKE_HEAD_UP '^'
 #define SNAKE_HEAD_DOWN 'v'
 #define SNAKE_HEAD_LEFT '<'
@@ -24,6 +26,9 @@
 #define MAP_WIDTH 40
 #define MAP_HEIGHT 40
 #define SNAKE_ARRAY_SIZE (MAP_WIDTH * MAP_HEIGHT)
+
+#define CONSOLE_WIDTH ((MAP_WIDTH + 2) * 2)
+#define CONSOLE_HEIGHT (MAP_HEIGHT + 3)
 
 #define HEAD_INDEX 0
 #define TAIL_INDEX (snake_length - 1)
@@ -57,6 +62,7 @@ Pos food;
 void Init(void);
 void Input(void);
 void GameLoop(void);
+void HandleEndOfGame(void);
 void Update(void);
 
 void GenerateFood(void);
@@ -87,22 +93,23 @@ bool FoodInsideSnake(void);
 int main(void)
 {
     Init();
+
     DrawMap();
     DrawSnake();
     DrawFood();
 
     GameLoop();
-
-    // Set cursor at the end of the output
-    SetCursorPosition(0, MAP_HEIGHT + 2);
+    HandleEndOfGame();
 
     return 0;
 }
 
 void Init(void)
 {
+    system("title " WINDOW_TITLE);
+
     char command[28];
-    sprintf(command, "mode con cols=%d lines=%d", (MAP_WIDTH + 2) * 2, MAP_HEIGHT + 2);
+    sprintf(command, "mode con cols=%d lines=%d", CONSOLE_WIDTH, CONSOLE_HEIGHT);
     system(command);
 
     hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -156,6 +163,14 @@ void GameLoop(void)
         Input();
         Update();
     }
+}
+
+void HandleEndOfGame(void)
+{
+    // Set cursor at the end of the output
+    SetCursorPosition(0, MAP_HEIGHT + 2);
+
+    system("pause");
 }
 
 void Update(void)
