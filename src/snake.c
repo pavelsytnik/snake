@@ -36,6 +36,9 @@
 
 #define BODY_EXISTS (snake_length > 1)
 
+#define SECOND 1000
+#define FPS 10
+
 // #define NEW_LINE() putchar('\n')
 
 HANDLE hConsole;
@@ -140,10 +143,10 @@ void Init(void)
 
 void Input(void)
 {
-    down_pressed = GetAsyncKeyState(VK_DOWN);
-    up_pressed = GetAsyncKeyState(VK_UP);
-    left_pressed = GetAsyncKeyState(VK_LEFT);
-    right_pressed = GetAsyncKeyState(VK_RIGHT);
+    down_pressed = (GetAsyncKeyState(VK_DOWN) | GetAsyncKeyState('S')) & 0x8001;
+    up_pressed = (GetAsyncKeyState(VK_UP) | GetAsyncKeyState('W')) & 0x8001;
+    left_pressed = (GetAsyncKeyState(VK_LEFT) | GetAsyncKeyState('A')) & 0x8001;
+    right_pressed = (GetAsyncKeyState(VK_RIGHT) | GetAsyncKeyState('D')) & 0x8001;
 
     switch (move_direction) {
         case UP:
@@ -166,7 +169,7 @@ void Input(void)
 void GameLoop(void)
 {
     while (!game_over) {
-        Sleep(100);
+        Sleep(SECOND / FPS);
         Input();
         Update();
     }
