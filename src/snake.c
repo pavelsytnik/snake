@@ -7,6 +7,7 @@
 #include <windows.h>
 
 #define WINDOW_TITLE "Snake"
+#define SCORE_STRING "Score: "
 
 #define SNAKE_HEAD_UP '^'
 #define SNAKE_HEAD_DOWN 'v'
@@ -28,7 +29,7 @@
 #define SNAKE_ARRAY_SIZE (MAP_WIDTH * MAP_HEIGHT)
 
 #define CONSOLE_WIDTH ((MAP_WIDTH + 2) * 2)
-#define CONSOLE_HEIGHT (MAP_HEIGHT + 3)
+#define CONSOLE_HEIGHT (MAP_HEIGHT + 4)
 
 #define HEAD_INDEX 0
 #define TAIL_INDEX (snake_length - 1)
@@ -59,6 +60,8 @@ int move_direction;
 
 Pos food;
 
+int score;
+
 void Init(void);
 void Input(void);
 void GameLoop(void);
@@ -72,12 +75,14 @@ void Move(void);
 void MoveHead(void);
 
 void DrawMap(void);
+void DrawBar(void);
 void DrawSnake(void);
 void DrawHead(void);
 void DrawFood(void);
 
 void DrawBodyOnHead(void);
 void EraseTail(void);
+void UpdateScore(void);
 
 void PrintChar(char ch);
 void RepeatChar(char ch, int count);
@@ -95,6 +100,7 @@ int main(void)
     Init();
 
     DrawMap();
+    DrawBar();
     DrawSnake();
     DrawFood();
 
@@ -119,6 +125,7 @@ void Init(void)
     grow = false;
     move_direction = RIGHT;
     snake_length = 3;
+    score = 0;
 
     snake[0].x = MAP_WIDTH / 2;
     snake[0].y = MAP_HEIGHT / 2;
@@ -168,7 +175,7 @@ void GameLoop(void)
 void HandleEndOfGame(void)
 {
     // Set cursor at the end of the output
-    SetCursorPosition(0, MAP_HEIGHT + 2);
+    SetCursorPosition(0, CONSOLE_HEIGHT - 1);
 
     system("pause");
 }
@@ -196,6 +203,8 @@ void Eat(void)
 {
     grow = true;
     snake_length++;
+    score += 10;
+    UpdateScore();
     GenerateFood();
     DrawFood();
 }
@@ -265,6 +274,12 @@ void DrawMap(void)
     // NEW_LINE();
 }
 
+void DrawBar(void)
+{
+    SetCursorPosition(0, CONSOLE_HEIGHT - 2);
+    printf("%s%d", SCORE_STRING, score);
+}
+
 void DrawSnake(void)
 {
     DrawHead();
@@ -303,6 +318,12 @@ void EraseTail(void)
 {
     PutCursorOnMap(snake[TAIL_INDEX]);
     PrintChar(AIR);
+}
+
+void UpdateScore(void)
+{
+    SetCursorPosition(sizeof(SCORE_STRING) - 1, CONSOLE_HEIGHT - 2);
+    printf("%d", score);
 }
 
 void DrawBodyOnHead(void)
