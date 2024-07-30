@@ -69,6 +69,7 @@ void repeatChar(char ch, int count);
 void putCursorOnMap(pos_t pos);
 
 void generateFood();
+int foodInSnake();
 void eat();
 
 void move();
@@ -282,7 +283,14 @@ void generateFood() {
     do {
         food.x = rand() % MAP_WIDTH;
         food.y = rand() % MAP_HEIGHT;
-    } while (areEqual(food, snake[HEAD_INDEX]));
+    } while (foodInSnake());
+}
+
+int foodInSnake() {
+    for (int i = HEAD_INDEX; i <= TAIL_INDEX; i++)
+        if (areEqual(snake[i], food))
+            return 1;
+    return 0;
 }
 
 void printChar(char ch) {
