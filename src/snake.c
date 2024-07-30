@@ -1,5 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -29,143 +30,175 @@
 
 #define BODY_EXISTS (snake_length > 1)
 
-#define NEW_LINE() putchar('\n')
+// #define NEW_LINE() putchar('\n')
 
 HANDLE hConsole;
 
-SHORT downPressed;
-SHORT upPressed;
-SHORT leftPressed;
-SHORT rightPressed;
+SHORT down_pressed;
+SHORT up_pressed;
+SHORT left_pressed;
+SHORT right_pressed;
 
-typedef struct pos {
+typedef struct Pos {
     int x;
     int y;
-} pos_t;
+} Pos;
 
-int gameOver;
+bool grow;
+bool game_over;
 
-pos_t snake[SNAKE_ARRAY_SIZE];
+Pos snake[SNAKE_ARRAY_SIZE];
 int snake_length;
 int tail_index;
 int move_direction;
 
-pos_t food;
-int grow;
+Pos food;
 
-void setCursor(int x, int y);
-void hideCursor();
+void Init(void);
+void Input(void);
+void GameLoop(void);
+void Update(void);
 
-void init();
-void input();
-void gameLoop();
-void update();
+void GenerateFood(void);
+void Eat(void);
 
-void drawSnake();
-void drawHead();
-void drawMap();
-void drawFood();
+void Move(void);
+void MoveHead(void);
 
-void printChar(char ch);
-void repeatChar(char ch, int count);
-void putCursorOnMap(pos_t pos);
+void DrawMap(void);
+void DrawSnake(void);
+void DrawHead(void);
+void DrawFood(void);
 
-void generateFood();
-int foodInSnake();
-void eat();
+void DrawBodyOnHead(void);
+void EraseTail(void);
 
-void move();
-void moveHead();
-void eraseTail();
+void PrintChar(char ch);
+void RepeatChar(char ch, int count);
 
-int wasCollision();
+void SetCursorPosition(int x, int y);
+void PutCursorOnMap(Pos pos);
+void HideCursor(void);
 
-int areEqual(pos_t a, pos_t b);
+bool PosEqual(Pos a, Pos b);
+bool CollisionOccurred(void);
+bool FoodInsideSnake(void);
 
-int main(void) {
+int main(void)
+{
+    Init();
+    DrawMap();
+    DrawSnake();
+    DrawFood();
 
-    init();
-    drawMap();
-    drawSnake();
-    drawFood();
+    GameLoop();
 
-    gameLoop();
-
-    /* Set cursor at the end of the output */
-    setCursor(0, MAP_HEIGHT + 2);
+    // Set cursor at the end of the output
+    SetCursorPosition(0, MAP_HEIGHT + 2);
 
     return 0;
 }
 
-void init() {
+void Init(void)
+{
     char command[28];
     sprintf(command, "mode con cols=%d lines=%d", (MAP_WIDTH + 2) * 2, MAP_HEIGHT + 2);
     system(command);
 
     hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    hideCursor();
+    HideCursor();
 
-    gameOver = 0;
-
+    game_over = false;
+    grow = false;
     move_direction = RIGHT;
     snake_length = 3;
 
-    snake[HEAD_INDEX].x = MAP_WIDTH / 2;
-    snake[HEAD_INDEX].y = MAP_HEIGHT / 2;
+    snake[0].x = MAP_WIDTH / 2;
+    snake[0].y = MAP_HEIGHT / 2;
     snake[1].x = snake[HEAD_INDEX].x - 1;
     snake[1].y = snake[HEAD_INDEX].y;
     snake[2].x = snake[HEAD_INDEX].x - 2;
     snake[2].y = snake[HEAD_INDEX].y;
 
     srand(time(NULL));
-    generateFood();
-    grow = 0;
+    GenerateFood();
 }
 
-void gameLoop() {
-    while (!gameOver) {
+void Input(void)
+{
+    down_pressed = GetAsyncKeyState(VK_DOWN);
+    up_pressed = GetAsyncKeyState(VK_UP);
+    left_pressed = GetAsyncKeyState(VK_LEFT);
+    right_pressed = GetAsyncKeyState(VK_RIGHT);
+
+    switch (move_direction) {
+        case UP:
+        case DOWN:
+            if (left_pressed)
+                move_direction = LEFT;
+            else if (right_pressed)
+                move_direction = RIGHT;
+            break;
+        case LEFT:
+        case RIGHT:
+            if (up_pressed)
+                move_direction = UP;
+            else if (down_pressed)
+                move_direction = DOWN;
+            break;
+    }
+}
+
+void GameLoop(void)
+{
+    while (!game_over) {
         Sleep(100);
-        input();
-        update();
+        Input();
+        Update();
     }
 }
 
-int wasCollision() {
-    int i;
-    for (i = 1; i < snake_length; ++i) {
-        if (areEqual(snake[HEAD_INDEX], snake[i])) {
-            return 1;
-        }
-    }
-    return 0;
+void Update(void)
+{
+    Move();
+    if (grow)
+        grow = false;
+    if (CollisionOccurred())
+        game_over = true;
+    if (PosEqual(food, snake[HEAD_INDEX]))
+        Eat();
 }
 
-void update() {
-    move();
-    if (grow) grow = 0;
-    if (wasCollision()) {
-        gameOver = 1;
-    }
-    if (areEqual(food, snake[HEAD_INDEX])) {
-        eat();
-    }
+void GenerateFood(void)
+{
+    do {
+        food.x = rand() % MAP_WIDTH;
+        food.y = rand() % MAP_HEIGHT;
+    } while (FoodInsideSnake());
 }
 
-void move() {
-    int i;
-    eraseTail();
-    for (i = TAIL_INDEX; i > HEAD_INDEX; i--) {
-        snake[i] = snake[i - 1];
-    }
-    moveHead();
+void Eat(void)
+{
+    grow = true;
+    snake_length++;
+    GenerateFood();
+    DrawFood();
 }
 
-void moveHead() {
+void Move(void)
+{
     if (BODY_EXISTS) {
-        putCursorOnMap(snake[HEAD_INDEX]);
-        printChar(SNAKE_BODY);
+        if (!grow)
+            EraseTail();
+        for (int i = TAIL_INDEX; i > HEAD_INDEX; --i)
+            snake[i] = snake[i - 1];
+        DrawBodyOnHead();
     }
+    MoveHead();
+}
 
+void MoveHead(void)
+{
     switch (move_direction) {
         case UP:
             if (snake[HEAD_INDEX].y == 0)
@@ -193,147 +226,122 @@ void moveHead() {
             break;
     }
 
-    drawHead();
+    DrawHead();
 }
 
-void eraseTail() {
-    if (!BODY_EXISTS || grow)
-        return;
-
-    putCursorOnMap(snake[TAIL_INDEX]);
-    printChar(AIR);
-}
-
-void input() {
-    downPressed = GetAsyncKeyState(VK_DOWN);
-    upPressed = GetAsyncKeyState(VK_UP);
-    leftPressed = GetAsyncKeyState(VK_LEFT);
-    rightPressed = GetAsyncKeyState(VK_RIGHT);
-
-    switch (move_direction) {
-        case UP:
-        case DOWN:
-            if (leftPressed)
-                move_direction = LEFT;
-            else if (rightPressed)
-                move_direction = RIGHT;
-            break;
-        case LEFT:
-        case RIGHT:
-            if (upPressed)
-                move_direction = UP;
-            else if (downPressed)
-                move_direction = DOWN;
-            break;
-    }
-}
-
-void eat() {
-    grow = 1;
-    snake_length++;
-    generateFood();
-    drawFood();
-}
-
-void drawMap() {
+void DrawMap(void)
+{
     int i;
 
-    SetCursor(0, 0);
-    repeatChar(WALL, MAP_WIDTH + 2);
-    //NEW_LINE();
+    SetCursorPosition(0, 0);
+    RepeatChar(WALL, MAP_WIDTH + 2);
+    // NEW_LINE();
 
     for (i = 0; i < MAP_HEIGHT; ++i) {
-        SetCursor(0, i + 1);
-        printChar(WALL);
-        repeatChar(AIR, MAP_WIDTH);
-        printChar(WALL);
-        //NEW_LINE();
+        SetCursorPosition(0, i + 1);
+        PrintChar(WALL);
+        RepeatChar(AIR, MAP_WIDTH);
+        PrintChar(WALL);
+        // NEW_LINE();
     }
 
-    SetCursor(0, i + 1);
-    repeatChar(WALL, MAP_WIDTH + 2);
-    //NEW_LINE();
+    SetCursorPosition(0, i + 1);
+    RepeatChar(WALL, MAP_WIDTH + 2);
+    // NEW_LINE();
 }
 
-void drawSnake() {
-    int i;
-
-    drawHead();
-    for (i = 1; i < snake_length; ++i) {
-        putCursorOnMap(snake[i]);
-        printChar(SNAKE_BODY);
+void DrawSnake(void)
+{
+    DrawHead();
+    for (int i = 1; i < snake_length; ++i) {
+        PutCursorOnMap(snake[i]);
+        PrintChar(SNAKE_BODY);
     }
 }
 
-void drawHead() {
-    putCursorOnMap(snake[HEAD_INDEX]);
+void DrawHead(void)
+{
+    PutCursorOnMap(snake[HEAD_INDEX]);
     switch (move_direction) {
         case UP:
-            printChar(SNAKE_HEAD_UP);
+            PrintChar(SNAKE_HEAD_UP);
             break;
         case RIGHT:
-            printChar(SNAKE_HEAD_RIGHT);
+            PrintChar(SNAKE_HEAD_RIGHT);
             break;
         case DOWN:
-            printChar(SNAKE_HEAD_DOWN);
+            PrintChar(SNAKE_HEAD_DOWN);
             break;
         case LEFT:
-            printChar(SNAKE_HEAD_LEFT);
+            PrintChar(SNAKE_HEAD_LEFT);
             break;
     }
 }
 
-void drawFood() {
-    putCursorOnMap(food);
-    printChar(FOOD);
+void DrawFood(void)
+{
+    PutCursorOnMap(food);
+    PrintChar(FOOD);
 }
 
-void generateFood() {
-    do {
-        food.x = rand() % MAP_WIDTH;
-        food.y = rand() % MAP_HEIGHT;
-    } while (foodInSnake());
+void EraseTail(void)
+{
+    PutCursorOnMap(snake[TAIL_INDEX]);
+    PrintChar(AIR);
 }
 
-int foodInSnake() {
-    for (int i = HEAD_INDEX; i <= TAIL_INDEX; i++)
-        if (areEqual(snake[i], food))
-            return 1;
-    return 0;
+void DrawBodyOnHead(void)
+{
+    PutCursorOnMap(snake[HEAD_INDEX]);
+    PrintChar(SNAKE_BODY);
 }
 
-void printChar(char ch) {
+void PrintChar(char ch)
+{
     putchar(ch);
     putchar(' ');
 }
 
-void repeatChar(char ch, int count) {
-    int i;
-    for (i = 0; i < count; ++i) {
-        printChar(ch);
-    }
+void RepeatChar(char ch, int count)
+{
+    for (int i = 0; i < count; ++i)
+        PrintChar(ch);
 }
 
-void setCursor(int x, int y) {
-    COORD coord;
-    coord.X = x;
-    coord.Y = y;
-
-    SetConsoleCursorPosition(hConsole, coord);
+void SetCursorPosition(int x, int y)
+{
+    SetConsoleCursorPosition(hConsole, (COORD) { x, y });
 }
 
-void putCursorOnMap(pos_t pos) {
-    setCursor((pos.x + 1) * 2, pos.y + 1);
+void PutCursorOnMap(Pos pos)
+{
+    SetCursorPosition((pos.x + 1) * 2, pos.y + 1);
 }
 
-void hideCursor() {
+void HideCursor(void)
+{
     CONSOLE_CURSOR_INFO cursorInfo;
     GetConsoleCursorInfo(hConsole, &cursorInfo);
-    cursorInfo.dwSize = 1;
     cursorInfo.bVisible = FALSE;
     SetConsoleCursorInfo(hConsole, &cursorInfo);
 }
 
-int areEqual(pos_t a, pos_t b) {
+bool PosEqual(Pos a, Pos b) {
     return a.x == b.x && a.y == b.y;
+}
+
+bool CollisionOccurred(void)
+{
+    for (int i = 1; i < snake_length; ++i)
+        if (PosEqual(snake[HEAD_INDEX], snake[i]))
+            return true;
+    return false;
+}
+
+bool FoodInsideSnake(void)
+{
+    for (int i = HEAD_INDEX; i <= TAIL_INDEX; ++i)
+        if (PosEqual(snake[i], food))
+            return true;
+    return false;
 }
