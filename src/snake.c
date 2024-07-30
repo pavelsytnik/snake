@@ -1,3 +1,5 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -96,6 +98,10 @@ int main(void) {
 }
 
 void init() {
+    char command[28];
+    sprintf(command, "mode con cols=%d lines=%d", (MAP_WIDTH + 2) * 2, MAP_HEIGHT + 2);
+    system(command);
+
     hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     hideCursor();
 
@@ -232,18 +238,21 @@ void eat() {
 void drawMap() {
     int i;
 
+    SetCursor(0, 0);
     repeatChar(WALL, MAP_WIDTH + 2);
-    NEW_LINE();
+    //NEW_LINE();
 
     for (i = 0; i < MAP_HEIGHT; ++i) {
+        SetCursor(0, i + 1);
         printChar(WALL);
         repeatChar(AIR, MAP_WIDTH);
         printChar(WALL);
-        NEW_LINE();
+        //NEW_LINE();
     }
 
+    SetCursor(0, i + 1);
     repeatChar(WALL, MAP_WIDTH + 2);
-    NEW_LINE();
+    //NEW_LINE();
 }
 
 void drawSnake() {
@@ -320,6 +329,7 @@ void putCursorOnMap(pos_t pos) {
 void hideCursor() {
     CONSOLE_CURSOR_INFO cursorInfo;
     GetConsoleCursorInfo(hConsole, &cursorInfo);
+    cursorInfo.dwSize = 1;
     cursorInfo.bVisible = FALSE;
     SetConsoleCursorInfo(hConsole, &cursorInfo);
 }
